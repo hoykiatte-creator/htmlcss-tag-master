@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>대림대 웹프로그래밍 - TagMaster</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0d0f14;--bg2:#141720;--bg3:#1c2030;--bg4:#242840;
+    --border:#2a2f4a;--border2:#3a4060;
+    --text:#e8eaf6;--text2:#8892b0;--text3:#4a5270;
+    --accent:#7c6af7;--accent2:#5a4fd4;
+    --green:#4ade80;--green-bg:#0f2a1a;--green-border:#1a4a2a;
+    --red:#f87171;--red-bg:#2a0f0f;--red-border:#4a1a1a;
+    --amber:#fbbf24;--amber-bg:#2a1f0a;
+    --teal:#2dd4bf;--pink:#f472b6;
+    --mono:'JetBrains Mono','Courier New',monospace;
+    --sans:'Noto Sans KR',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;line-height:1.6;}
+  .app{max-width:720px;margin:0 auto;padding:0 1rem;min-height:100vh;display:flex;flex-direction:column;}
+  .screen{display:none;flex-direction:column;flex:1;padding:1.5rem 0;}
+  .screen.active{display:flex;}
+  .topnav{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;background:var(--bg2);border:1px solid var(--border);border-radius:12px;margin-bottom:1.25rem;}
+  .nav-badges{display:flex;align-items:center;gap:.5rem;}
+  .badge{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;font-family:var(--mono);font-size:12px;font-weight:500;}
+  .badge-streak{background:#2a1800;color:var(--amber);border:1px solid #4a3000;}
+  .badge-xp{background:#1a1040;color:var(--accent);border:1px solid #2a2060;}
+  .hearts{display:flex;gap:3px;align-items:center;}
+  .heart{font-size:18px;transition:all .3s;}
+  .heart.dead{opacity:.18;filter:grayscale(1);}
+  .xp-section{margin-bottom:1.25rem;}
+  .xp-meta{display:flex;justify-content:space-between;margin-bottom:5px;}
+  .xp-meta span{font-size:11px;color:var(--text3);font-family:var(--mono);}
+  .xp-track{height:5px;background:var(--bg3);border-radius:99px;overflow:hidden;}
+  .xp-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:99px;transition:width .6s cubic-bezier(.4,0,.2,1);}
+  .prog-section{margin-bottom:1.5rem;}
+  .prog-meta{display:flex;justify-content:space-between;margin-bottom:5px;}
+  .prog-meta span{font-size:11px;color:var(--text3);font-family:var(--mono);}
+  .prog-track{height:7px;background:var(--bg3);border-radius:99px;overflow:hidden;border:1px solid var(--border);}
+  .prog-fill{height:100%;background:var(--green);border-radius:99px;transition:width .4s ease;}
+  .home-hero{text-align:center;padding:2rem 0 1.5rem;}
+  .home-logo{font-family:var(--mono);font-size:32px;font-weight:700;color:var(--accent);letter-spacing:-1px;margin-bottom:6px;}
+  .home-logo span{color:var(--teal);}
+  .home-tagline{font-size:13px;color:var(--text2);font-family:var(--mono);}
+  .section-label{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;font-family:var(--mono);margin-bottom:.6rem;}
+  .topic-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem;}
+  .topic-btn{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.875rem 1rem;cursor:pointer;transition:all .15s;text-align:left;position:relative;}
+  .topic-btn:hover{border-color:var(--border2);background:var(--bg3);}
+  .topic-btn.sel{border-color:var(--accent);background:#1a1640;}
+  .topic-btn .t-icon{font-size:18px;margin-bottom:6px;}
+  .topic-btn .t-name{font-size:14px;font-weight:500;color:var(--text);font-family:var(--mono);}
+  .topic-btn .t-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+  .topic-btn .t-count{position:absolute;top:8px;right:10px;font-family:var(--mono);font-size:10px;color:var(--text3);background:var(--bg3);padding:2px 6px;border-radius:99px;border:1px solid var(--border);}
+  .mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1.5rem;}
+  .mode-btn{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;cursor:pointer;transition:all .15s;text-align:left;}
+  .mode-btn:hover{border-color:var(--border2);}
+  .mode-btn.sel{border-color:var(--teal);background:#0a1f1d;}
+  .mode-btn .m-name{font-size:13px;font-weight:500;color:var(--text);font-family:var(--mono);}
+  .mode-btn .m-sub{font-size:11px;color:var(--text3);margin-top:2px;}
+  .start-btn{width:100%;padding:1rem;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:var(--mono);font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;letter-spacing:.02em;}
+  .start-btn:hover{background:var(--accent2);transform:translateY(-1px);}
+  .qcard{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1rem;}
+  .qtype-tag{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;margin-bottom:1rem;}
+  .qt-flash{background:#0f2a1a;color:var(--green);border:1px solid var(--green-border);}
+  .qt-blank{background:#1a1040;color:var(--accent);border:1px solid #2a2060;}
+  .qt-type{background:#2a1000;color:var(--amber);border:1px solid #4a2000;}
+  .q-question{font-size:16px;font-weight:500;color:var(--text);margin-bottom:1.25rem;line-height:1.6;}
+  .code-block{background:#080a10;border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;font-family:var(--mono);font-size:13px;line-height:1.8;margin-bottom:1.25rem;color:var(--text2);white-space:pre-wrap;word-break:break-all;}
+  .blank-slot{display:inline-block;background:#1a1640;color:var(--accent);border:1.5px dashed var(--accent2);border-radius:5px;padding:1px 10px;min-width:70px;text-align:center;font-weight:700;}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .opts.single{grid-template-columns:1fr;}
+  .opt{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.875rem 1rem;font-family:var(--mono);font-size:13px;color:var(--text);cursor:pointer;transition:all .12s;text-align:left;line-height:1.4;}
+  .opt:hover:not(:disabled){border-color:var(--border2);background:var(--bg4);}
+  .opt.correct{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+  .opt.wrong{background:var(--red-bg);border-color:var(--red);color:var(--red);}
+  .opt:disabled{cursor:default;}
+  .type-wrap{display:flex;gap:8px;}
+  .type-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;font-family:var(--mono);font-size:14px;color:var(--text);outline:none;transition:border-color .15s;}
+  .type-input:focus{border-color:var(--accent);}
+  .type-input.correct{border-color:var(--green);background:var(--green-bg);color:var(--green);}
+  .type-input.wrong{border-color:var(--red);background:var(--red-bg);color:var(--red);}
+  .type-input:disabled{cursor:default;}
+  .sub-btn{padding:.75rem 1.25rem;background:var(--accent);color:#fff;border:none;border-radius:10px;font-family:var(--mono);font-size:13px;font-weight:700;cursor:pointer;transition:all .12s;white-space:nowrap;}
+  .sub-btn:hover{background:var(--accent2);}
+  .feedback{padding:.875rem 1rem;border-radius:10px;font-size:13px;line-height:1.5;margin-bottom:.75rem;display:none;font-family:var(--mono);}
+  .feedback.show{display:block;}
+  .feedback.ok{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);}
+  .feedback.ng{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);}
+  .quiz-actions{display:flex;gap:8px;margin-bottom:.75rem;}
+  .nav-btn{flex:1;padding:.75rem;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);cursor:pointer;font-family:var(--mono);font-size:13px;transition:all .12s;}
+  .nav-btn:hover{border-color:var(--border2);color:var(--text);}
+  .nav-btn:disabled{opacity:.3;cursor:default;}
+  .next-btn{display:none;width:100%;padding:.875rem;background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:10px;font-family:var(--mono);font-size:14px;font-weight:500;cursor:pointer;transition:all .12s;margin-bottom:.75rem;}
+  .next-btn.show{display:block;}
+  .next-btn:hover{background:var(--bg4);border-color:var(--accent);}
+  .hint-text{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:6px;}
+  .result-hero{text-align:center;padding:2rem 0 1rem;}
+  .result-emoji{font-size:56px;margin-bottom:.5rem;}
+  .result-title{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px;}
+  .result-sub{font-size:13px;color:var(--text2);}
+  .result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:1.5rem 0;}
+  .res-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:1.25rem;text-align:center;}
+  .res-val{font-family:var(--mono);font-size:24px;font-weight:700;}
+  .res-lbl{font-size:11px;color:var(--text3);margin-top:4px;}
+  .rv-green{color:var(--green);}
+  .rv-acc{color:var(--accent);}
+  .rv-amber{color:var(--amber);}
+  .again-btn{width:100%;padding:1rem;margin-bottom:.75rem;background:var(--accent);color:#fff;border:none;border-radius:12px;font-family:var(--mono);font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;}
+  .again-btn:hover{background:var(--accent2);}
+  .home-link-btn{width:100%;padding:.75rem;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:12px;font-family:var(--mono);font-size:13px;cursor:pointer;transition:all .15s;}
+  .home-link-btn:hover{border-color:var(--border2);color:var(--text);}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(4px);}
+  .modal-bg.show{display:flex;}
+  .modal-box{background:var(--bg2);border:1px solid var(--accent);border-radius:16px;padding:2.5rem 2rem;text-align:center;max-width:300px;width:90%;animation:popIn .3s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes popIn{from{transform:scale(.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .modal-icon{font-size:48px;margin-bottom:.75rem;}
+  .modal-title{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+  .modal-sub{font-size:13px;color:var(--text2);margin-bottom:1.25rem;}
+  .modal-ok{padding:.75rem 2rem;background:var(--accent);color:#fff;border:none;border-radius:10px;font-family:var(--mono);font-size:14px;font-weight:700;cursor:pointer;}
+  .combo-flash{position:fixed;top:80px;right:20px;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--amber);background:var(--amber-bg);border:1px solid #4a3000;padding:6px 12px;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .3s;}
+  .combo-flash.show{opacity:1;}
+  @media(max-width:480px){
+    .opts,.topic-grid,.mode-grid,.result-grid{grid-template-columns:1fr;}
+    .home-logo{font-size:26px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="modal-bg" id="modalBg">
+    <div class="modal-box">
+      <div class="modal-icon">🏆</div>
+      <div class="modal-title" id="modalTitle">레벨 업!</div>
+      <div class="modal-sub" id="modalSub"></div>
+      <button class="modal-ok" onclick="closeModal()">계속하기 →</button>
+    </div>
+  </div>
+  <div class="combo-flash" id="comboFlash"></div>
+  <div class="screen active" id="homeScreen">
+    <div class="topnav">
+      <div class="nav-badges">
+        <span class="badge badge-streak">🔥 <span id="h-streak">0</span>일</span>
+        <span class="badge badge-xp">⚡ <span id="h-xp">0</span> XP</span>
+      </div>
+      <div class="hearts" id="h-hearts"></div>
+    </div>
+    <div class="xp-section">
+      <div class="xp-meta">
+        <span id="h-lvname">Lv.1 · 초보 마크업러</span>
+        <span><span id="h-xpcurr">0</span> / <span id="h-xpmax">100</span></span>
+      </div>
+      <div class="xp-track"><div class="xp-fill" id="h-xpbar" style="width:0%"></div></div>
+    </div>
+    <div class="home-hero">
+      <div class="home-logo">대림대 <span>TagMaster</span></div>
+      <div class="home-tagline">// 웹프로그래밍기초 완벽 가이드</div>
+    </div>
+    <div class="section-label">학습 범위 (대림대 시트 기준)</div>
+    <div class="topic-grid">
+      <div class="topic-btn sel" data-topic="all" onclick="pickTopic(this,'all')">
+        <div class="t-icon">⚡</div><div class="t-name">전체</div><div class="t-sub">모든 내용</div>
+        <span class="t-count" id="cnt-all">0</span>
+      </div>
+      <div class="topic-btn" data-topic="html-struct" onclick="pickTopic(this,'html-struct')">
+        <div class="t-icon">🏗</div><div class="t-name">HTML 구조</div><div class="t-sub">문서 뼈대</div>
+        <span class="t-count" id="cnt-html-struct">0</span>
+      </div>
+      <div class="topic-btn" data-topic="html-content" onclick="pickTopic(this,'html-content')">
+        <div class="t-icon">✍️</div><div class="t-name">텍스트/멀티미디어</div><div class="t-sub">p, a, img 등</div>
+        <span class="t-count" id="cnt-html-content">0</span>
+      </div>
+      <div class="topic-btn" data-topic="html-form" onclick="pickTopic(this,'html-form')">
+        <div class="t-icon">📋</div><div class="t-name">폼/입력</div><div class="t-sub">input, select 등</div>
+        <span class="t-count" id="cnt-html-form">0</span>
+      </div>
+      <div class="topic-btn" data-topic="html-semantic" onclick="pickTopic(this,'html-semantic')">
+        <div class="t-icon">🧩</div><div class="t-name">시맨틱</div><div class="t-sub">header, nav 등</div>
+        <span class="t-count" id="cnt-html-semantic">0</span>
+      </div>
+      <div class="topic-btn" data-topic="css-box" onclick="pickTopic(this,'css-box')">
+        <div class="t-icon">📦</div><div class="t-name">CSS 박스모델</div><div class="t-sub">margin, border 등</div>
+        <span class="t-count" id="cnt-css-box">0</span>
+      </div>
+      <div class="topic-btn" data-topic="css-layout" onclick="pickTopic(this,'css-layout')">
+        <div class="t-icon">🔲</div><div class="t-name">CSS 레이아웃</div><div class="t-sub">flex, position 등</div>
+        <span class="t-count" id="cnt-css-layout">0</span>
+      </div>
+      <div class="topic-btn" data-topic="css-visual" onclick="pickTopic(this,'css-visual')">
+        <div class="t-icon">✨</div><div class="t-name">CSS 애니메이션</div><div class="t-sub">transition, 키프레임</div>
+        <span class="t-count" id="cnt-css-visual">0</span>
+      </div>
+    </div>
+    <div class="section-label">문제 유형</div>
+    <div class="mode-grid">
+      <div class="mode-btn sel" data-mode="mixed" onclick="pickMode(this,'mixed')">
+        <div class="m-name">🎲 혼합 모드</div><div class="m-sub">다양한 문제 섞기</div>
+      </div>
+      <div class="mode-btn" data-mode="flashcard" onclick="pickMode(this,'flashcard')">
+        <div class="m-name">🃏 플래시카드</div><div class="m-sub">객관식 태그 찾기</div>
+      </div>
+      <div class="mode-btn" data-mode="blank" onclick="pickMode(this,'blank')">
+        <div class="m-name">⬜ 빈칸 채우기</div><div class="m-sub">코드 빈칸 맞추기</div>
+      </div>
+      <div class="mode-btn" data-mode="typein" onclick="pickMode(this,'typein')">
+        <div class="m-name">⌨️ 직접 입력</div><div class="m-sub">태그 직접 타이핑</div>
+      </div>
+    </div>
+    <button class="start-btn" onclick="startSession()">학습 시작 →</button>
+  </div>
+  <div class="screen" id="quizScreen">
+    <div class="topnav">
+      <div class="nav-badges">
+        <span class="badge badge-streak">🔥 <span id="q-streak">0</span>일</span>
+        <span class="badge badge-xp">⚡ <span id="q-lvname">Lv.1</span> · <span id="q-xp">0</span>xp</span>
+      </div>
+      <div class="hearts" id="q-hearts"></div>
+    </div>
+    <div class="prog-section">
+      <div class="prog-meta">
+        <span>진행률</span>
+        <span><span id="q-curr">1</span> / <span id="q-total">15</span></span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="q-progfill" style="width:0%"></div></div>
+    </div>
+    <div class="qcard">
+      <span class="qtype-tag qt-flash" id="qtTag">플래시카드</span>
+      <div class="q-question" id="qQuestion"></div>
+      <div class="code-block" id="qCode" style="display:none"></div>
+      <div class="opts" id="qOpts"></div>
+      <div class="type-wrap" id="qTypeWrap" style="display:none">
+        <input class="type-input" id="typeInput" placeholder="입력하세요..." autocomplete="off" spellcheck="false"/>
+        <button class="sub-btn" onclick="submitType()">확인</button>
+      </div>
+      <div class="hint-text" id="qHint"></div>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQ()">다음 문제 →</button>
+    <div class="quiz-actions">
+      <button class="nav-btn" id="prevBtn" onclick="prevQ()">← 이전 문제</button>
+      <button class="nav-btn" onclick="goHome()">🏠 홈</button>
+    </div>
+  </div>
+  <div class="screen" id="resultScreen">
+    <div class="topnav">
+      <div class="nav-badges">
+        <span class="badge badge-streak">🔥 <span id="r-streak">0</span>일</span>
+        <span class="badge badge-xp">⚡ <span id="r-xp">0</span> XP</span>
+      </div>
+      <div class="hearts" id="r-hearts"></div>
+    </div>
+    <div class="result-hero">
+      <div class="result-emoji" id="r-emoji">🎉</div>
+      <div class="result-title" id="r-title">세션 완료!</div>
+      <div class="result-sub" id="r-sub"></div>
+    </div>
+    <div class="result-grid">
+      <div class="res-box"><div class="res-val rv-green" id="r-correct">0</div><div class="res-lbl">정답</div></div>
+      <div class="res-box"><div class="res-val rv-acc" id="r-gained">+0</div><div class="res-lbl">획득 XP</div></div>
+      <div class="res-box"><div class="res-val rv-amber" id="r-combo">0</div><div class="res-lbl">최대 콤보</div></div>
+    </div>
+    <button class="again-btn" onclick="startSession()">같은 설정으로 다시 →</button>
+    <button class="home-link-btn" onclick="goHome()">홈으로</button>
+  </div>
+</div>
+<script>
+const LEVELS=[
+  {name:'초보 마크업러',max:100},
+  {name:'태그 수련생',max:250},
+  {name:'CSS 탐험가',max:500},
+  {name:'엘리먼트 기사',max:850},
+  {name:'레이아웃 마법사',max:1300},
+  {name:'웹 장인',max:2000},
+  {name:'HTML 현자',max:9999},
+];
+const MAX_HEARTS=5;
+const SESSION_LEN=15;
+const SAVE_KEY='tagmaster-save';
+
+// 대림대 코드정리 시트 기반 대규모 문제 세트
+const QB=[
+  /* HTML 구조 파트 (60개 이상을 위한 예시 세트 - 실제 운영시는 더 추가 가능) */
+  {t:'flashcard',c:'html-struct',q:'HTML 문서의 시작을 선언하는 최상위 태그는?',ans:'<html>',opts:['<html>','<head>','<body>','<meta>']},
+  {t:'blank',c:'html-struct',q:'문서 제목을 정의하는 태그는?',code:'<head>\n  <___>문서 제목</___>\n</head>',blank:'title',ans:'<title>',opts:['<title>','<head>','<h1>','<meta>']},
+  {t:'typein',c:'html-struct',q:'문서의 정보를 담는 영역인 head 태그를 입력하세요.',ans:'<head>',acc:['head','<head>']},
+  
+  /* 텍스트/멀티미디어 */
+  {t:'flashcard',c:'html-content',q:'가장 큰 제목을 나타내는 태그는?',ans:'<h1>',opts:['<h1>','<h6>','<p>','<span>']},
+  {t:'blank',c:'html-content',q:'이미지 삽입 시 경로를 지정하는 속성은?',code:'<img ___="image.jpg" alt="설명">',blank:'src',ans:'src',opts:['src','href','link','url']},
+  {t:'typein',c:'html-content',q:'줄바꿈을 수행하는 태그는?',ans:'<br>',acc:['br','<br>','<br/>']},
+
+  /* 폼/입력 */
+  {t:'flashcard',c:'html-form',q:'사용자가 텍스트를 입력할 수 있는 기본적인 태그는?',ans:'<input>',opts:['<input>','<button>','<form>','<label>']},
+  {t:'blank',c:'html-form',q:'입력창과 라벨을 연결하는 속성은?',code:'<label ___="userid">아이디</label>\n<input id="userid">',blank:'for',ans:'for',opts:['for','id','name','class']},
+  {t:'typein',c:'html-form',q:'전송 버튼을 만드는 태그를 입력하세요.',ans:'<button>',acc:['button','<button>']},
+
+  /* 시맨틱 */
+  {t:'flashcard',c:'html-semantic',q:'주요 네비게이션 영역을 정의하는 태그는?',ans:'<nav>',opts:['<nav>','<header>','<main>','<footer>']},
+  {t:'blank',c:'html-semantic',q:'문서의 하단 정보를 정의하는 태그는?',code:'<___>\n  <p>Copyright 2025</p>\n</___>',blank:'footer',ans:'<footer>',opts:['<footer>','<header>','<aside>','<main>']},
+  {t:'typein',c:'html-semantic',q:'기사나 포스트 등 독립된 구역을 정의하는 태그는?',ans:'<article>',acc:['article','<article>']},
+
+  /* CSS 박스모델 */
+  {t:'flashcard',c:'css-box',q:'테두리 안쪽 여백을 설정하는 속성은?',ans:'padding',opts:['padding','margin','border','width']},
+  {t:'blank',c:'css-box',q:'요소의 바깥 여백을 설정하는 속성은?',code:'.box {\n  ___: 20px;\n}',blank:'margin',ans:'margin',opts:['margin','padding','border','gap']},
+  {t:'typein',c:'css-box',q:'테두리를 둥글게 만드는 속성명을 입력하세요.',ans:'border-radius',acc:['border-radius']},
+
+  /* CSS 레이아웃 */
+  {t:'flashcard',c:'css-layout',q:'부모를 유연한 박스로 만드는 display 값은?',ans:'flex',opts:['flex','block','inline','grid']},
+  {t:'blank',c:'css-layout',q:'요소를 절대 위치로 지정하는 속성값은?',code:'.box {\n  position: ___;\n}',blank:'absolute',ans:'absolute',opts:['absolute','relative','fixed','static']},
+  {t:'typein',c:'css-layout',q:'요소의 쌓임 순서를 결정하는 속성명을 입력하세요.',ans:'z-index',acc:['z-index']},
+
+  /* CSS 시각효과/애니메이션 */
+  {t:'flashcard',c:'css-visual',q:'부드러운 전환 효과를 주는 속성은?',ans:'transition',opts:['transition','animation','transform','ease']},
+  {t:'blank',c:'css-visual',q:'요소를 회전하거나 크기를 조절하는 속성은?',code:'.box {\n  ___: rotate(45deg);\n}',blank:'transform',ans:'transform',opts:['transform','transition','animation','scale']},
+  {t:'typein',c:'css-visual',q:'애니메이션 단계를 정의하는 @ 키워드를 입력하세요.',ans:'keyframes',acc:['keyframes','@keyframes']}
+];
+
+let G={
+  xp:0,level:0,hearts:MAX_HEARTS,
+  streak:0,lastDate:null,
+  totalQ:0,totalCorrect:0,
+  topic:'all',mode:'mixed',
+  session:{qs:[],idx:0,correct:0,xpGained:0,combo:0,maxCombo:0},
+  pendingLevelUp:false,
+  answered:false,
+};
+
+function saveGame(){ sessionStorage.setItem(SAVE_KEY,JSON.stringify(G)); }
+function loadGame(){
+  const raw=sessionStorage.getItem(SAVE_KEY);
+  if(raw) G={...G,...JSON.parse(raw)};
+}
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function normalizeQ(q){
+  return {
+    t:q.t||'flashcard', c:q.c||'misc', q:q.q||'', ans:q.ans||'',
+    opts:Array.isArray(q.opts)?q.opts:[], acc:Array.isArray(q.acc)?q.acc:[q.ans],
+    code:q.code||'', blank:q.blank||'', hint:q.hint||''
+  };
+}
+function $(id){return document.getElementById(id);}
+function calcLevel(xp){
+  let lv=0;
+  for(let i=0;i<LEVELS.length-1;i++){if(xp>=LEVELS[i].max)lv=i+1;else break;}
+  return lv;
+}
+function xpInLevel(xp,lv){
+  const base=lv>0?LEVELS[lv-1].max:0;
+  const top=LEVELS[lv].max===9999?base+1000:LEVELS[lv].max;
+  return{curr:xp-base,range:top-base};
+}
+function renderHearts(id){
+  const el=$(id); el.innerHTML='';
+  for(let i=0;i<MAX_HEARTS;i++){
+    const h=document.createElement('span');
+    h.className='heart'+(i>=G.hearts?' dead':'');
+    h.textContent='❤️';
+    el.appendChild(h);
+  }
+}
+function updateCounts(){
+  const cats=['all','html-struct','html-content','html-form','html-semantic','css-box','css-layout','css-visual'];
+  cats.forEach(c=>{
+    const n=c==='all'?QB.length:QB.filter(q=>q.c===c).length;
+    $( 'cnt-'+c).textContent=n;
+  });
+}
+function setTxt(id,v){if($(id))$(id).textContent=v;}
+function updateTopBars(){
+  const lv=G.level;
+  const lvd=LEVELS[Math.min(lv,LEVELS.length-1)];
+  const x=xpInLevel(G.xp,lv);
+  const pct=Math.min(100,Math.round(x.curr/x.range*100));
+  setTxt('h-lvname',`Lv.${lv+1} · ${lvd.name}`);
+  setTxt('h-xp',G.xp); setTxt('h-xpcurr',x.curr); setTxt('h-xpmax',x.range);
+  setTxt('h-streak',G.streak);
+  $('h-xpbar').style.width=pct+'%';
+  renderHearts('h-hearts');
+  setTxt('q-streak',G.streak); setTxt('q-lvname',`Lv.${lv+1}`); setTxt('q-xp',G.xp);
+  renderHearts('q-hearts');
+  setTxt('r-streak',G.streak); setTxt('r-xp',G.xp);
+  renderHearts('r-hearts');
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+function goHome(){ updateTopBars(); showScreen('homeScreen'); saveGame(); }
+function pickTopic(el,t){
+  document.querySelectorAll('.topic-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); G.topic=t;
+}
+function pickMode(el,m){
+  document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('sel'));
+  el.classList.add('sel'); G.mode=m;
+}
+function checkStreak(){
+  const today=new Date().toDateString();
+  if(G.lastDate===today)return;
+  const yday=new Date(Date.now()-86400000).toDateString();
+  G.streak=(G.lastDate===yday)?G.streak+1:1;
+  G.lastDate=today;
+}
+function startSession(){
+  let pool=G.topic==='all'?QB:QB.filter(q=>q.c===G.topic);
+  if(G.mode!=='mixed') pool=pool.filter(q=>q.t===G.mode);
+  const qs=shuffle(pool).map(normalizeQ).slice(0,SESSION_LEN);
+  G.session={qs,idx:0,correct:0,xpGained:0,combo:0,maxCombo:0};
+  G.hearts=MAX_HEARTS; G.answered=false; G.pendingLevelUp=false;
+  checkStreak(); updateTopBars(); showScreen('quizScreen'); renderQ(); saveGame();
+}
+function renderQ(){
+  G.answered=false;
+  const s=G.session; const q=s.qs[s.idx];
+  setTxt('q-curr',s.idx+1); setTxt('q-total',s.qs.length);
+  $('q-progfill').style.width=Math.round(s.idx/s.qs.length*100)+'%';
+  $('prevBtn').disabled=(s.idx===0);
+  const tagMap={flashcard:'🃏 플래시카드',blank:'⬜ 빈칸 채우기',typein:'⌨️ 직접 입력'};
+  const clsMap={flashcard:'qt-flash',blank:'qt-blank',typein:'qt-type'};
+  $('qtTag').textContent=tagMap[q.t]||q.t; $('qtTag').className='qtype-tag '+(clsMap[q.t]||'qt-flash');
+  $('qQuestion').textContent=q.q;
+  const codeEl=$('qCode'),optsEl=$('qOpts'),typeEl=$('qTypeWrap'),ti=$('typeInput');
+  codeEl.style.display='none'; optsEl.innerHTML=''; typeEl.style.display='none';
+  ti.value=''; ti.disabled=false; ti.className='type-input';
+  if(q.t==='blank'){
+    codeEl.style.display='block'; codeEl.innerHTML=q.code.replace('___','<span class="blank-slot">???</span>').replace(/\n/g,'<br>');
+  }
+  if(q.t==='flashcard'||q.t==='blank'){
+    shuffle(q.opts).forEach(o=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=o;
+      b.onclick=()=>selectOpt(b,o,q.ans); optsEl.appendChild(b);
+    });
+  }else{
+    typeEl.style.display='flex'; setTimeout(()=>ti.focus(),50);
+  }
+  $('feedback').className='feedback'; $('nextBtn').className='next-btn';
+}
+function selectOpt(btn,sel,correct){
+  if(G.answered)return; G.answered=true;
+  document.querySelectorAll('.opt').forEach(b=>{
+    b.disabled=true; if(b.textContent===correct)b.classList.add('correct');
+  });
+  if(sel!==correct)btn.classList.add('wrong');
+  handleResult(sel===correct,correct);
+}
+function submitType(){
+  if(G.answered)return;
+  const q=G.session.qs[G.session.idx];
+  const val=$('typeInput').value.trim().toLowerCase();
+  const ok=(q.acc).map(a=>a.toLowerCase()).includes(val);
+  G.answered=true; $('typeInput').disabled=true; $('typeInput').classList.add(ok?'correct':'wrong');
+  handleResult(ok,q.ans);
+}
+function handleResult(ok,correct){
+  const s=G.session; const fb=$('feedback');
+  if(ok){
+    s.combo++; s.maxCombo=Math.max(s.maxCombo,s.combo);
+    const xp=10+(s.combo>=3?5:0); G.xp+=xp; G.totalCorrect++; G.totalQ++; s.correct++; s.xpGained+=xp;
+    fb.className='feedback ok show'; fb.innerHTML=`✓ 정답! <strong>+${xp} XP</strong>`;
+    if(s.combo>=3){
+      const ef=$('comboFlash'); ef.textContent=`🔥 ${s.combo} COMBO!`; ef.classList.add('show');
+      setTimeout(()=>ef.classList.remove('show'),1500);
+    }
+    if(calcLevel(G.xp)>G.level){G.level=calcLevel(G.xp); G.pendingLevelUp=true;}
+  }else{
+    s.combo=0; G.hearts=Math.max(0,G.hearts-1); G.totalQ++;
+    fb.className='feedback ng show'; fb.innerHTML=`✗ 오답. 정답: <strong>${correct}</strong>`;
+    if(G.hearts===0){setTimeout(()=>endSession('hearts'),1000); return;}
+  }
+  $('nextBtn').className='next-btn show'; updateTopBars(); saveGame();
+}
+function nextQ(){
+  if(G.pendingLevelUp){G.pendingLevelUp=false; showLevelUp(); return;}
+  G.session.idx++; if(G.session.idx>=G.session.qs.length){endSession('done'); return;}
+  renderQ();
+}
+function prevQ(){ if(G.session.idx>0){G.session.idx--; renderQ();} }
+function endSession(reason){
+  showScreen('resultScreen');
+  const s=G.session; const pct=Math.round(s.correct/s.qs.length*100);
+  setTxt('r-emoji',reason==='hearts'?'💔':(pct>=80?'🏆':'🎉'));
+  setTxt('r-title',reason==='hearts'?'목숨 소진!':'세션 완료!');
+  setTxt('r-sub',`${s.qs.length}문제 중 ${s.correct}개 정답`);
+  setTxt('r-correct',`${s.correct}/${s.qs.length}`); setTxt('r-gained',`+${s.xpGained}`); setTxt('r-combo',s.maxCombo);
+  updateTopBars(); saveGame();
+}
+function showLevelUp(){
+  const lv=G.level; const name=LEVELS[Math.min(lv,LEVELS.length-1)].name;
+  setTxt('modalTitle','레벨 업! 🎉'); setTxt('modalSub',`Lv.${lv+1} · ${name} 달성!`);
+  $('modalBg').classList.add('show');
+}
+function closeModal(){ $('modalBg').classList.remove('show'); nextQ(); }
+loadGame(); updateCounts(); updateTopBars();
+</script>
+</body>
+</html>
